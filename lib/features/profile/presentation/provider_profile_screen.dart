@@ -4,10 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/didim_neighborhoods.dart';
 import '../../../core/constants/service_categories.dart';
 import '../../auth/presentation/auth_providers.dart';
+import '../domain/provider_profile.dart';
 import 'profile_providers.dart';
 
 class ProviderProfileScreen extends ConsumerStatefulWidget {
-  const ProviderProfileScreen({super.key});
+  const ProviderProfileScreen({super.key, this.existingProfile});
+
+  final ProviderProfile? existingProfile;
+
+  bool get isEditing => existingProfile != null;
 
   @override
   ConsumerState<ProviderProfileScreen> createState() =>
@@ -16,10 +21,14 @@ class ProviderProfileScreen extends ConsumerStatefulWidget {
 
 class _ProviderProfileScreenState extends ConsumerState<ProviderProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _businessNameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  String? _category;
-  String? _neighborhood;
+  late final _businessNameController = TextEditingController(
+    text: widget.existingProfile?.businessName,
+  );
+  late final _descriptionController = TextEditingController(
+    text: widget.existingProfile?.description,
+  );
+  late String? _category = widget.existingProfile?.category;
+  late String? _neighborhood = widget.existingProfile?.neighborhood;
   bool _isLoading = false;
 
   @override
@@ -34,16 +43,32 @@ class _ProviderProfileScreenState extends ConsumerState<ProviderProfileScreen> {
     setState(() => _isLoading = true);
     try {
       final userId = ref.read(supabaseClientProvider).auth.currentUser!.id;
-      await ref.read(providerRepositoryProvider).createProviderProfile(
-            id: userId,
-            businessName: _businessNameController.text.trim(),
-            category: _category!,
-            neighborhood: _neighborhood!,
-            description: _descriptionController.text.trim().isEmpty
-                ? null
-                : _descriptionController.text.trim(),
-          );
+      final repository = ref.read(providerRepositoryProvider);
+      final businessName = _businessNameController.text.trim();
+      final description = _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim();
+      if (widget.isEditing) {
+        await repository.updateProviderProfile(
+          id: userId,
+          businessName: businessName,
+          category: _category!,
+          neighborhood: _neighborhood!,
+          description: description,
+        );
+      } else {
+        await repository.createProviderProfile(
+          id: userId,
+          businessName: businessName,
+          category: _category!,
+          neighborhood: _neighborhood!,
+          description: description,
+        );
+      }
       ref.invalidate(currentProviderProfileProvider);
+      if (widget.isEditing && mounted) {
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
@@ -56,7 +81,11 @@ class _ProviderProfileScreenState extends ConsumerState<ProviderProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Usta Profilini Tamamla')),
+      appBar: AppBar(
+        title: Text(
+          widget.isEditing ? 'Profili Düzenle' : 'Usta Profilini Tamamla',
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -105,7 +134,7 @@ class _ProviderProfileScreenState extends ConsumerState<ProviderProfileScreen> {
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Kaydet ve Devam Et'),
+                    : Text(widget.isEditing ? 'Kaydet' : 'Kaydet ve Devam Et'),
               ),
             ],
           ),

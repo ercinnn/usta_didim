@@ -23,6 +23,21 @@ class ProviderRepository {
     });
   }
 
+  Future<void> updateProviderProfile({
+    required String id,
+    required String businessName,
+    required String category,
+    required String neighborhood,
+    String? description,
+  }) async {
+    await _client.from('providers').update({
+      'business_name': businessName,
+      'category': category,
+      'neighborhood': neighborhood,
+      'description': description,
+    }).eq('id', id);
+  }
+
   Future<ProviderProfile?> getProviderProfile(String id) async {
     final row =
         await _client.from('providers').select().eq('id', id).maybeSingle();
