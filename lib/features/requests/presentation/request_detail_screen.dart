@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/star_rating.dart';
 import '../../../core/widgets/ticket_card.dart';
 import '../../../core/widgets/verified_stamp.dart';
+import '../../auth/presentation/auth_providers.dart';
 import '../../offers/domain/offer.dart';
 import '../../offers/domain/offer_status.dart';
 import '../../offers/presentation/offer_providers.dart';
 import '../../offers/presentation/offer_status_label.dart';
+import '../../reviews/presentation/review_providers.dart';
+import '../domain/service_request_status.dart';
 import 'request_providers.dart';
 import 'request_status_label.dart';
 
@@ -32,10 +37,33 @@ class RequestDetailScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _markCompleted(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(serviceRequestRepositoryProvider).markCompleted(requestId);
+      ref.invalidate(requestByIdProvider(requestId));
+      ref.invalidate(myRequestsProvider);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('$e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requestAsync = ref.watch(requestByIdProvider(requestId));
     final offersAsync = ref.watch(offersForRequestProvider(requestId));
+    final request = requestAsync.value;
+    final offers = offersAsync.value;
+    Offer? acceptedOffer;
+    if (offers != null) {
+      for (final offer in offers) {
+        if (offer.status == OfferStatus.accepted) {
+          acceptedOffer = offer;
+          break;
+        }
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Talep Detayı')),
@@ -122,6 +150,22 @@ class RequestDetailScreen extends ConsumerWidget {
                 child: Text('Hata: $error'),
               ),
             ),
+            if (request?.status == ServiceRequestStatus.pending)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.task_alt_rounded),
+                  label: const Text('İşi Tamamlandı Olarak İşaretle'),
+                  onPressed: () => _markCompleted(context, ref),
+                ),
+              ),
+            if (request?.status == ServiceRequestStatus.completed &&
+                acceptedOffer != null)
+              _ReviewSection(
+                requestId: requestId,
+                providerId: acceptedOffer.providerId,
+                providerName: acceptedOffer.providerBusinessName ?? 'Usta',
+              ),
           ],
         ),
       ),
@@ -171,6 +215,126 @@ class _OfferTile extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _ReviewSection extends ConsumerStatefulWidget {
+  const _ReviewSection({
+    required this.requestId,
+    required this.providerId,
+    required this.providerName,
+  });
+
+  final String requestId;
+  final String providerId;
+  final String providerName;
+
+  @override
+  ConsumerState<_ReviewSection> createState() => _ReviewSectionState();
+}
+
+class _ReviewSectionState extends ConsumerState<_ReviewSection> {
+  final _commentController = TextEditingController();
+  int _rating = 0;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_rating == 0) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Lütfen bir puan seçin.')));
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final customerId = ref.read(supabaseClientProvider).auth.currentUser!.id;
+      await ref.read(reviewRepositoryProvider).submitReview(
+            requestId: widget.requestId,
+            providerId: widget.providerId,
+            customerId: customerId,
+            rating: _rating,
+            comment: _commentController.text.trim().isEmpty
+                ? null
+                : _commentController.text.trim(),
+          );
+      ref.invalidate(reviewForRequestProvider(widget.requestId));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reviewAsync = ref.watch(reviewForRequestProvider(widget.requestId));
+
+    return reviewAsync.when(
+      data: (review) {
+        if (review != null) {
+          return TicketCard(
+            eyebrow: 'Değerlendirmeniz',
+            accentColor: AppColors.olive,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                StarRating(rating: review.rating),
+                if (review.comment != null && review.comment!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(review.comment!),
+                ],
+              ],
+            ),
+          );
+        }
+        return TicketCard(
+          eyebrow: '${widget.providerName} · Değerlendir',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              StarRating(
+                rating: _rating,
+                onChanged: (value) => setState(() => _rating = value),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _commentController,
+                maxLines: 3,
+                decoration: const InputDecoration(labelText: 'Yorumunuz (opsiyonel)'),
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _isLoading ? null : _submit,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.paper,
+                        ),
+                      )
+                    : const Text('Değerlendirmeyi Gönder'),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text('Hata: $error'),
       ),
     );
   }

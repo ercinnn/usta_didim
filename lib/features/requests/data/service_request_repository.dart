@@ -44,6 +44,12 @@ class ServiceRequestRepository {
     return ServiceRequest.fromMap(row);
   }
 
+  Future<void> markCompleted(String id) async {
+    await _client
+        .from('service_requests')
+        .update({'status': 'completed'}).eq('id', id);
+  }
+
   Future<List<ServiceRequest>> getOpenRequestsForCategory(String category) async {
     final rows = await _client
         .from('service_requests')
