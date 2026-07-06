@@ -10,7 +10,7 @@ class OfferRepository {
   Future<List<Offer>> getOffersForRequest(String requestId) async {
     final rows = await _client
         .from('offers')
-        .select('*, providers(business_name, rating)')
+        .select('*, providers(business_name, rating, is_verified)')
         .eq('request_id', requestId)
         .order('created_at', ascending: true);
     return rows.map(Offer.fromMap).toList();

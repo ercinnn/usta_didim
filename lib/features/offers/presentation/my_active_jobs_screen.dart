@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/ticket_card.dart';
 import 'offer_providers.dart';
 import 'offer_status_label.dart';
 
@@ -26,23 +28,42 @@ class MyActiveJobsTab extends ConsumerWidget {
             );
           }
           return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: offers.length,
             itemBuilder: (context, index) {
               final offer = offers[index];
-              return ListTile(
-                title: Text(offer.requestTitle ?? 'Talep'),
-                subtitle: Text(
-                  [
-                    if (offer.requestCategory != null) offer.requestCategory,
-                    if (offer.requestNeighborhood != null) offer.requestNeighborhood,
-                  ].join(' · '),
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
+              final statusColor = offerStatusColor(offer.status);
+              return TicketCard(
+                eyebrow: offer.requestCategory ?? 'Talep',
+                accentColor: statusColor,
+                child: Row(
                   children: [
-                    Text('${offer.price} TL'),
-                    Text(offerStatusLabel(offer.status)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            offer.requestTitle ?? 'Talep',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          if (offer.requestNeighborhood != null) ...[
+                            const SizedBox(height: 2),
+                            Text(offer.requestNeighborhood!),
+                          ],
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('${offer.price} ₺', style: AppTextStyles.mono(fontSize: 14)),
+                        const SizedBox(height: 2),
+                        Text(
+                          offerStatusLabel(offer.status),
+                          style: TextStyle(color: statusColor, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/ticket_card.dart';
 import '../../requests/presentation/request_providers.dart';
 import 'job_opportunity_detail_screen.dart';
 
@@ -26,16 +28,35 @@ class JobPoolTab extends ConsumerWidget {
             );
           }
           return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: jobs.length,
             itemBuilder: (context, index) {
               final job = jobs[index];
-              return ListTile(
-                title: Text(job.title),
-                subtitle: Text('${job.category} · ${job.neighborhood}'),
+              return TicketCard(
+                eyebrow: job.category,
+                accentColor: AppColors.navy,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => JobOpportunityDetailScreen(requestId: job.id),
                   ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            job.title,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(job.neighborhood),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded, color: AppColors.navy),
+                  ],
                 ),
               );
             },

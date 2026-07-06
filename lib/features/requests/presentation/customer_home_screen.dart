@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/ticket_card.dart';
 import '../../auth/presentation/auth_providers.dart';
 import 'create_request_screen.dart';
 import 'request_detail_screen.dart';
@@ -39,17 +40,41 @@ class CustomerHomeScreen extends ConsumerWidget {
               );
             }
             return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: requests.length,
               itemBuilder: (context, index) {
                 final request = requests[index];
-                return ListTile(
-                  title: Text(request.title),
-                  subtitle: Text('${request.category} · ${request.neighborhood}'),
-                  trailing: Text(serviceRequestStatusLabel(request.status)),
+                return TicketCard(
+                  eyebrow: request.category,
+                  accentColor: serviceRequestStatusColor(request.status),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => RequestDetailScreen(requestId: request.id),
                     ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              request.title,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(request.neighborhood),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        serviceRequestStatusLabel(request.status),
+                        style: TextStyle(
+                          color: serviceRequestStatusColor(request.status),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },

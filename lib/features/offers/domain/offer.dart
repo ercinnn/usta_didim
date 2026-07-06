@@ -11,6 +11,7 @@ class Offer {
     this.note,
     this.providerBusinessName,
     this.providerRating,
+    this.providerIsVerified = false,
     this.requestTitle,
     this.requestCategory,
     this.requestNeighborhood,
@@ -29,6 +30,7 @@ class Offer {
       createdAt: DateTime.parse(map['created_at'] as String),
       providerBusinessName: provider?['business_name'] as String?,
       providerRating: provider?['rating'] as num?,
+      providerIsVerified: provider?['is_verified'] as bool? ?? false,
       requestTitle: request?['title'] as String?,
       requestCategory: request?['category'] as String?,
       requestNeighborhood: request?['neighborhood'] as String?,
@@ -44,6 +46,7 @@ class Offer {
   final DateTime createdAt;
   final String? providerBusinessName;
   final num? providerRating;
+  final bool providerIsVerified;
   final String? requestTitle;
   final String? requestCategory;
   final String? requestNeighborhood;

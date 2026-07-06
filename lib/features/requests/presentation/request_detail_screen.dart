@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/ticket_card.dart';
+import '../../../core/widgets/verified_stamp.dart';
 import '../../offers/domain/offer.dart';
 import '../../offers/domain/offer_status.dart';
 import '../../offers/presentation/offer_providers.dart';
@@ -51,17 +54,23 @@ class RequestDetailScreen extends ConsumerWidget {
                     child: Text('Talep bulunamadı.'),
                   );
                 }
-                return Padding(
-                  padding: const EdgeInsets.all(16),
+                return TicketCard(
+                  eyebrow: request.category,
+                  accentColor: serviceRequestStatusColor(request.status),
+                  trailing: Text(
+                    serviceRequestStatusLabel(request.status),
+                    style: TextStyle(
+                      color: serviceRequestStatusColor(request.status),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(request.title,
                           style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 4),
-                      Text('${request.category} · ${request.neighborhood}'),
-                      const SizedBox(height: 4),
-                      Text('Durum: ${serviceRequestStatusLabel(request.status)}'),
+                      Text(request.neighborhood),
                       if (request.description != null &&
                           request.description!.isNotEmpty) ...[
                         const SizedBox(height: 12),
@@ -128,40 +137,40 @@ class _OfferTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              offer.providerBusinessName ?? 'İsimsiz Usta',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            if (offer.providerRating != null)
-              Text('Puan: ${offer.providerRating}'),
-            const SizedBox(height: 4),
-            Text('${offer.price} TL',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
-            if (offer.note != null && offer.note!.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(offer.note!),
-            ],
-            const SizedBox(height: 4),
-            Text('Durum: ${offerStatusLabel(offer.status)}'),
-            if (onAccept != null) ...[
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: onAccept,
-                child: const Text('Teklifi Kabul Et'),
+    final statusColor = offerStatusColor(offer.status);
+    return TicketCard(
+      eyebrow: offer.providerBusinessName ?? 'İsimsiz Usta',
+      accentColor: statusColor,
+      trailing: offer.providerIsVerified ? const VerifiedStamp() : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('${offer.price} ₺',
+                  style: AppTextStyles.mono(fontSize: 18, fontWeight: FontWeight.w700)),
+              const SizedBox(width: 12),
+              if (offer.providerRating != null)
+                Text('Puan: ${offer.providerRating}'),
+              const Spacer(),
+              Text(
+                offerStatusLabel(offer.status),
+                style: TextStyle(color: statusColor, fontWeight: FontWeight.w600),
               ),
             ],
+          ),
+          if (offer.note != null && offer.note!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(offer.note!),
           ],
-        ),
+          if (onAccept != null) ...[
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: onAccept,
+              child: const Text('Teklifi Kabul Et'),
+            ),
+          ],
+        ],
       ),
     );
   }
