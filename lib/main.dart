@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,6 +14,16 @@ Future<void> main() async {
     url: SupabaseConfig.url,
     publishableKey: SupabaseConfig.publishableKey,
   );
+
+  // Push notifications are optional: until the Firebase project for this app
+  // exists and firebase_options.dart is generated (see CLAUDE.md / plan),
+  // this throws and is swallowed on purpose -- in-app notifications keep
+  // working via Supabase realtime regardless of Firebase being configured.
+  try {
+    await Firebase.initializeApp();
+  } catch (_) {
+    // Firebase not configured yet.
+  }
 
   runApp(const ProviderScope(child: UstaDidimApp()));
 }

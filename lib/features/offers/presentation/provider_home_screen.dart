@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/presentation/auth_providers.dart';
+import '../../notifications/presentation/notification_bell.dart';
 import '../../profile/presentation/profile_providers.dart';
 import '../../profile/presentation/provider_profile_screen.dart';
 import 'job_pool_tab.dart';
@@ -20,6 +21,7 @@ class ProviderHomeScreen extends ConsumerWidget {
         appBar: AppBar(
           title: const Text('Usta Paneli'),
           actions: [
+            const NotificationBell(),
             IconButton(
               icon: const Icon(Icons.person),
               tooltip: 'Profilim',

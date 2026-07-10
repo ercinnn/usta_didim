@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/domain/app_role.dart';
+import '../../notifications/presentation/notification_providers.dart';
 import '../../offers/presentation/provider_home_screen.dart';
 import '../../requests/presentation/customer_home_screen.dart';
 import 'profile_providers.dart';
@@ -13,6 +14,13 @@ class ProfileGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(currentProfileProvider);
+
+    ref.listen(currentProfileProvider, (previous, next) {
+      final profile = next.value;
+      if (profile != null && previous?.value?.id != profile.id) {
+        ref.read(pushTokenRepositoryProvider).registerCurrentDevice(profile.id);
+      }
+    });
 
     return profileAsync.when(
       data: (profile) {

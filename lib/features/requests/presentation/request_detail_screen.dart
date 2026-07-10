@@ -7,6 +7,7 @@ import '../../../core/widgets/star_rating.dart';
 import '../../../core/widgets/ticket_card.dart';
 import '../../../core/widgets/verified_stamp.dart';
 import '../../auth/presentation/auth_providers.dart';
+import '../../messages/presentation/chat_screen.dart';
 import '../../offers/domain/offer.dart';
 import '../../offers/domain/offer_status.dart';
 import '../../offers/presentation/offer_providers.dart';
@@ -150,6 +151,19 @@ class RequestDetailScreen extends ConsumerWidget {
                 child: Text('Hata: $error'),
               ),
             ),
+            if (acceptedOffer != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.chat_bubble_outline_rounded),
+                  label: const Text('Mesajlar'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(requestId: requestId),
+                    ),
+                  ),
+                ),
+              ),
             if (request?.status == ServiceRequestStatus.pending)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),

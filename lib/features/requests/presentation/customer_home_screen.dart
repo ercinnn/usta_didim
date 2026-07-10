@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/ticket_card.dart';
 import '../../auth/presentation/auth_providers.dart';
+import '../../notifications/presentation/notification_bell.dart';
 import 'create_request_screen.dart';
 import 'request_detail_screen.dart';
 import 'request_providers.dart';
@@ -19,6 +20,7 @@ class CustomerHomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Taleplerim'),
         actions: [
+          const NotificationBell(),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => ref.read(authRepositoryProvider).signOut(),

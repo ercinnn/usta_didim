@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/ticket_card.dart';
+import '../../messages/presentation/chat_screen.dart';
+import '../domain/offer_status.dart';
 import 'offer_providers.dart';
 import 'offer_status_label.dart';
 
@@ -36,6 +38,13 @@ class MyActiveJobsTab extends ConsumerWidget {
               return TicketCard(
                 eyebrow: offer.requestCategory ?? 'Talep',
                 accentColor: statusColor,
+                onTap: offer.status == OfferStatus.accepted
+                    ? () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ChatScreen(requestId: offer.requestId),
+                          ),
+                        )
+                    : null,
                 child: Row(
                   children: [
                     Expanded(
