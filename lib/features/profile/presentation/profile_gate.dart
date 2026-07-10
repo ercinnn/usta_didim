@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_container.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/domain/app_role.dart';
 import '../../notifications/presentation/notification_providers.dart';
 import '../../offers/presentation/provider_home_screen.dart';
@@ -65,7 +68,7 @@ class _CenteredLoader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GlassScaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -73,7 +76,12 @@ class _CenteredLoader extends StatelessWidget {
             const CircularProgressIndicator(),
             if (message != null) ...[
               const SizedBox(height: 12),
-              Text(message!),
+              Text(
+                message!,
+                style: TextStyle(
+                  color: GlassColors.textSecondary(Theme.of(context).brightness),
+                ),
+              ),
             ],
           ],
         ),
@@ -89,6 +97,18 @@ class _CenteredError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Hata: $message')));
+    return GlassScaffold(
+      body: Center(
+        child: GlassContainer(
+          child: Text(
+            'Hata: $message',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: GlassColors.textPrimary(Theme.of(context).brightness),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

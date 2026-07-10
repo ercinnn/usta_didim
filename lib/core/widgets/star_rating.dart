@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/glass_colors.dart';
 
 /// A row of 5 stars. Pass [onChanged] for an interactive picker, or omit it
 /// for a read-only display (used for both submitting and showing a review).
@@ -24,7 +24,7 @@ class StarRating extends StatelessWidget {
         final starValue = index + 1;
         final icon = Icon(
           starValue <= rating ? Icons.star_rounded : Icons.star_border_rounded,
-          color: AppColors.terracotta,
+          color: GlassColors.warning,
           size: size,
         );
         if (onChanged == null) return icon;

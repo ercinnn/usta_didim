@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/theme/glass_spacing.dart';
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/glass_button.dart';
+import '../../../core/widgets/glass_text_field.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../profile/presentation/profile_providers.dart';
 import '../domain/app_role.dart';
 import 'auth_providers.dart';
@@ -64,8 +69,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Kayıt Ol')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Kayıt Ol')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -77,33 +82,33 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextFormField(
+                  GlassTextField(
                     controller: _fullNameController,
-                    decoration: const InputDecoration(labelText: 'Ad Soyad'),
+                    labelText: 'Ad Soyad',
                     validator: (value) =>
                         (value == null || value.isEmpty) ? 'Ad soyad gerekli' : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  GlassTextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: 'Telefon'),
+                    labelText: 'Telefon',
                     validator: (value) =>
                         (value == null || value.isEmpty) ? 'Telefon gerekli' : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  GlassTextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'E-posta'),
+                    labelText: 'E-posta',
                     validator: (value) =>
                         (value == null || value.isEmpty) ? 'E-posta gerekli' : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
+                  GlassTextField(
                     controller: _passwordController,
                     obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Şifre'),
+                    labelText: 'Şifre',
                     validator: (value) => (value == null || value.length < 6)
                         ? 'En az 6 karakter'
                         : null,
@@ -136,18 +141,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  FilledButton(
+                  GlassButton(
+                    label: 'Kayıt Ol',
+                    loading: _isLoading,
                     onPressed: _isLoading ? null : _signUp,
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.paper,
-                            ),
-                          )
-                        : const Text('Kayıt Ol'),
                   ),
                 ],
               ),
@@ -174,33 +171,38 @@ class _RoleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final foreground = selected ? Colors.white : GlassColors.textPrimary(brightness);
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: GlassSpacing.animationDuration,
+        curve: GlassSpacing.animationCurve,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: selected ? AppColors.navy : AppColors.paper,
-          borderRadius: BorderRadius.circular(12),
+          gradient: selected
+              ? const LinearGradient(
+                  colors: [GlassColors.primary, GlassColors.accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: selected ? null : GlassColors.glassFill(brightness),
+          borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
           border: Border.all(
-            color: selected ? AppColors.navy : AppColors.outline,
-            width: selected ? 2 : 1,
+            color: selected ? Colors.transparent : GlassColors.glassBorder(brightness),
+            width: selected ? 0 : 1,
           ),
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: selected ? AppColors.paper : AppColors.navy,
-            ),
+            Icon(icon, color: foreground),
             const SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(
-                color: selected ? AppColors.paper : AppColors.ink,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
             ),
           ],
         ),

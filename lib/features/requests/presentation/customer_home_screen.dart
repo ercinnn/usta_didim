@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/ticket_card.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/glass_service_card.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../../notifications/presentation/notification_bell.dart';
 import 'create_request_screen.dart';
@@ -15,9 +18,10 @@ class CustomerHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requestsAsync = ref.watch(myRequestsProvider);
+    final brightness = Theme.of(context).brightness;
 
-    return Scaffold(
-      appBar: AppBar(
+    return GlassScaffold(
+      appBar: GlassAppBar(
         title: const Text('Taleplerim'),
         actions: [
           const NotificationBell(),
@@ -33,10 +37,17 @@ class CustomerHomeScreen extends ConsumerWidget {
           data: (requests) {
             if (requests.isEmpty) {
               return ListView(
-                children: const [
+                children: [
                   Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: Text('Henüz bir talebin yok.')),
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Text(
+                        'Henüz bir talebin yok.',
+                        style: TextStyle(
+                          color: GlassColors.textSecondary(brightness),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -46,7 +57,7 @@ class CustomerHomeScreen extends ConsumerWidget {
               itemCount: requests.length,
               itemBuilder: (context, index) {
                 final request = requests[index];
-                return TicketCard(
+                return GlassServiceCard(
                   eyebrow: request.category,
                   accentColor: serviceRequestStatusColor(request.status),
                   onTap: () => Navigator.of(context).push(
@@ -65,7 +76,12 @@ class CustomerHomeScreen extends ConsumerWidget {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 2),
-                            Text(request.neighborhood),
+                            Text(
+                              request.neighborhood,
+                              style: TextStyle(
+                                color: GlassColors.textSecondary(brightness),
+                              ),
+                            ),
                           ],
                         ),
                       ),

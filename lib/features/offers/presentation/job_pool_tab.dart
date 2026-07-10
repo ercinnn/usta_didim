@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/ticket_card.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_service_card.dart';
 import '../../requests/presentation/request_providers.dart';
 import 'job_opportunity_detail_screen.dart';
 
@@ -12,6 +12,7 @@ class JobPoolTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final jobsAsync = ref.watch(jobPoolProvider);
+    final brightness = Theme.of(context).brightness;
 
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(jobPoolProvider),
@@ -19,10 +20,15 @@ class JobPoolTab extends ConsumerWidget {
         data: (jobs) {
           if (jobs.isEmpty) {
             return ListView(
-              children: const [
+              children: [
                 Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: Text('Kategorinizde açık iş fırsatı yok.')),
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Text(
+                      'Kategorinizde açık iş fırsatı yok.',
+                      style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                    ),
+                  ),
                 ),
               ],
             );
@@ -32,9 +38,9 @@ class JobPoolTab extends ConsumerWidget {
             itemCount: jobs.length,
             itemBuilder: (context, index) {
               final job = jobs[index];
-              return TicketCard(
+              return GlassServiceCard(
                 eyebrow: job.category,
-                accentColor: AppColors.navy,
+                accentColor: GlassColors.primary,
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => JobOpportunityDetailScreen(requestId: job.id),
@@ -51,11 +57,14 @@ class JobPoolTab extends ConsumerWidget {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 2),
-                          Text(job.neighborhood),
+                          Text(
+                            job.neighborhood,
+                            style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                          ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right_rounded, color: AppColors.navy),
+                    Icon(Icons.chevron_right_rounded, color: GlassColors.primary),
                   ],
                 ),
               );

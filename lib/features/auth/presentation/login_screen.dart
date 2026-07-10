@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_button.dart';
+import '../../../core/widgets/glass_container.dart';
+import '../../../core/widgets/glass_text_field.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import 'auth_providers.dart';
 import 'sign_up_screen.dart';
 
@@ -45,87 +49,69 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.navy,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _Wordmark(),
-                  const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-                    decoration: BoxDecoration(
-                      color: AppColors.paper,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.outline),
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Giriş Yap',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 20),
-                          TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration:
-                                const InputDecoration(labelText: 'E-posta'),
-                            validator: (value) => (value == null || value.isEmpty)
-                                ? 'E-posta gerekli'
-                                : null,
-                          ),
-                          const SizedBox(height: 14),
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: true,
-                            decoration:
-                                const InputDecoration(labelText: 'Şifre'),
-                            validator: (value) => (value == null || value.length < 6)
-                                ? 'En az 6 karakter'
-                                : null,
-                          ),
-                          const SizedBox(height: 24),
-                          FilledButton(
-                            onPressed: _isLoading ? null : _signIn,
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.paper,
+    return GlassScaffold(
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const _Wordmark(),
+                const SizedBox(height: 32),
+                GlassContainer(
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Giriş Yap',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 20),
+                        GlassTextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          labelText: 'E-posta',
+                          validator: (value) => (value == null || value.isEmpty)
+                              ? 'E-posta gerekli'
+                              : null,
+                        ),
+                        const SizedBox(height: 14),
+                        GlassTextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          labelText: 'Şifre',
+                          validator: (value) => (value == null || value.length < 6)
+                              ? 'En az 6 karakter'
+                              : null,
+                        ),
+                        const SizedBox(height: 24),
+                        GlassButton(
+                          label: 'Giriş Yap',
+                          loading: _isLoading,
+                          onPressed: _isLoading ? null : _signIn,
+                        ),
+                        const SizedBox(height: 4),
+                        TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const SignUpScreen(),
                                     ),
-                                  )
-                                : const Text('Giriş Yap'),
-                          ),
-                          const SizedBox(height: 4),
-                          TextButton(
-                            onPressed: _isLoading
-                                ? null
-                                : () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const SignUpScreen(),
-                                      ),
-                                    ),
-                            child: const Text('Hesabın yok mu? Kayıt ol'),
-                          ),
-                        ],
-                      ),
+                                  ),
+                          child: const Text('Hesabın yok mu? Kayıt ol'),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -139,8 +125,9 @@ class _Wordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final displayStyle = Theme.of(context).textTheme.displaySmall?.copyWith(
-          color: AppColors.paper,
+          color: GlassColors.textPrimary(brightness),
           height: 1,
         );
     return Column(
@@ -149,7 +136,7 @@ class _Wordmark extends StatelessWidget {
           'DİDİM\'DE GÜVENİLİR USTA AĞI',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: AppColors.paper.withValues(alpha: 0.65),
+            color: GlassColors.textSecondary(brightness),
             fontSize: 12,
             fontWeight: FontWeight.w600,
             letterSpacing: 2.2,
@@ -167,12 +154,12 @@ class _Wordmark extends StatelessWidget {
               height: 10,
               margin: const EdgeInsets.only(bottom: 6),
               decoration: const BoxDecoration(
-                color: AppColors.terracotta,
+                color: GlassColors.accent,
                 shape: BoxShape.circle,
               ),
             ),
             const SizedBox(width: 10),
-            Text('DİDİM', style: displayStyle?.copyWith(color: AppColors.terracotta)),
+            Text('DİDİM', style: displayStyle?.copyWith(color: GlassColors.primary)),
           ],
         ),
       ],

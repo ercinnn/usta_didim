@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/glass_colors.dart';
 import '../domain/offer_status.dart';
 
 String offerStatusLabel(OfferStatus status) {
@@ -17,10 +17,10 @@ String offerStatusLabel(OfferStatus status) {
 Color offerStatusColor(OfferStatus status) {
   switch (status) {
     case OfferStatus.pending:
-      return AppColors.navy;
+      return GlassColors.warning;
     case OfferStatus.accepted:
-      return AppColors.olive;
+      return GlassColors.success;
     case OfferStatus.rejected:
-      return AppColors.ink.withValues(alpha: 0.45);
+      return GlassColors.neutral;
   }
 }

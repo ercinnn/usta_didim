@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/glass_colors.dart';
 
-/// The signature "Usta Onaylı" mark: a hand-stamped seal shown next to a
-/// provider's name wherever `providers.is_verified` is true. Absence of the
-/// stamp *is* the unverified state — there is no separate "not verified"
-/// badge, matching how a real workshop seal works.
+/// The "Usta Onaylı" verified badge shown next to a provider's name wherever
+/// `providers.is_verified` is true. Absence of the badge *is* the unverified
+/// state — there is no separate "not verified" badge.
 class VerifiedStamp extends StatelessWidget {
   const VerifiedStamp({super.key, this.size = 22});
 
@@ -15,24 +14,22 @@ class VerifiedStamp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: 'Usta Onaylı',
-      child: Transform.rotate(
-        angle: -0.14,
-        child: Container(
-          width: size,
-          height: size,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.olive,
-              width: size * 0.1,
-            ),
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [GlassColors.success, GlassColors.accent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Icon(
-            Icons.check_rounded,
-            color: AppColors.olive,
-            size: size * 0.62,
-          ),
+        ),
+        child: Icon(
+          Icons.check_rounded,
+          color: Colors.white,
+          size: size * 0.62,
         ),
       ),
     );

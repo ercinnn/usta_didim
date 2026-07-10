@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/glass_button.dart';
+import '../../../core/widgets/glass_service_card.dart';
+import '../../../core/widgets/glass_text_field.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../../core/widgets/star_rating.dart';
-import '../../../core/widgets/ticket_card.dart';
 import '../../../core/widgets/verified_stamp.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../../messages/presentation/chat_screen.dart';
@@ -54,6 +58,7 @@ class RequestDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final requestAsync = ref.watch(requestByIdProvider(requestId));
     final offersAsync = ref.watch(offersForRequestProvider(requestId));
+    final brightness = Theme.of(context).brightness;
     final request = requestAsync.value;
     final offers = offersAsync.value;
     Offer? acceptedOffer;
@@ -66,8 +71,8 @@ class RequestDetailScreen extends ConsumerWidget {
       }
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Talep Detayı')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Talep Detayı')),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(requestByIdProvider(requestId));
@@ -83,7 +88,7 @@ class RequestDetailScreen extends ConsumerWidget {
                     child: Text('Talep bulunamadı.'),
                   );
                 }
-                return TicketCard(
+                return GlassServiceCard(
                   eyebrow: request.category,
                   accentColor: serviceRequestStatusColor(request.status),
                   trailing: Text(
@@ -99,11 +104,17 @@ class RequestDetailScreen extends ConsumerWidget {
                       Text(request.title,
                           style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 4),
-                      Text(request.neighborhood),
+                      Text(
+                        request.neighborhood,
+                        style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                      ),
                       if (request.description != null &&
                           request.description!.isNotEmpty) ...[
                         const SizedBox(height: 12),
-                        Text(request.description!),
+                        Text(
+                          request.description!,
+                          style: TextStyle(color: GlassColors.textPrimary(brightness)),
+                        ),
                       ],
                     ],
                   ),
@@ -126,9 +137,12 @@ class RequestDetailScreen extends ConsumerWidget {
             offersAsync.when(
               data: (offers) {
                 if (offers.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('Henüz teklif yok.'),
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'Henüz teklif yok.',
+                      style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                    ),
                   );
                 }
                 return Column(
@@ -154,9 +168,10 @@ class RequestDetailScreen extends ConsumerWidget {
             if (acceptedOffer != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.chat_bubble_outline_rounded),
-                  label: const Text('Mesajlar'),
+                child: GlassButton(
+                  variant: GlassButtonVariant.secondary,
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Mesajlar',
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => ChatScreen(requestId: requestId),
@@ -167,9 +182,10 @@ class RequestDetailScreen extends ConsumerWidget {
             if (request?.status == ServiceRequestStatus.pending)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.task_alt_rounded),
-                  label: const Text('İşi Tamamlandı Olarak İşaretle'),
+                child: GlassButton(
+                  variant: GlassButtonVariant.secondary,
+                  icon: Icons.task_alt_rounded,
+                  label: 'İşi Tamamlandı Olarak İşaretle',
                   onPressed: () => _markCompleted(context, ref),
                 ),
               ),
@@ -195,8 +211,9 @@ class _OfferTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final statusColor = offerStatusColor(offer.status);
-    return TicketCard(
+    return GlassServiceCard(
       eyebrow: offer.providerBusinessName ?? 'İsimsiz Usta',
       accentColor: statusColor,
       trailing: offer.providerIsVerified ? const VerifiedStamp() : null,
@@ -205,11 +222,20 @@ class _OfferTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('${offer.price} ₺',
-                  style: AppTextStyles.mono(fontSize: 18, fontWeight: FontWeight.w700)),
+              Text(
+                '${offer.price} ₺',
+                style: AppTextStyles.mono(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: GlassColors.textPrimary(brightness),
+                ),
+              ),
               const SizedBox(width: 12),
               if (offer.providerRating != null)
-                Text('Puan: ${offer.providerRating}'),
+                Text(
+                  'Puan: ${offer.providerRating}',
+                  style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                ),
               const Spacer(),
               Text(
                 offerStatusLabel(offer.status),
@@ -219,14 +245,14 @@ class _OfferTile extends StatelessWidget {
           ),
           if (offer.note != null && offer.note!.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(offer.note!),
+            Text(
+              offer.note!,
+              style: TextStyle(color: GlassColors.textPrimary(brightness)),
+            ),
           ],
           if (onAccept != null) ...[
             const SizedBox(height: 12),
-            FilledButton(
-              onPressed: onAccept,
-              child: const Text('Teklifi Kabul Et'),
-            ),
+            GlassButton(label: 'Teklifi Kabul Et', onPressed: onAccept),
           ],
         ],
       ),
@@ -290,26 +316,30 @@ class _ReviewSectionState extends ConsumerState<_ReviewSection> {
   @override
   Widget build(BuildContext context) {
     final reviewAsync = ref.watch(reviewForRequestProvider(widget.requestId));
+    final brightness = Theme.of(context).brightness;
 
     return reviewAsync.when(
       data: (review) {
         if (review != null) {
-          return TicketCard(
+          return GlassServiceCard(
             eyebrow: 'Değerlendirmeniz',
-            accentColor: AppColors.olive,
+            accentColor: GlassColors.success,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 StarRating(rating: review.rating),
                 if (review.comment != null && review.comment!.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(review.comment!),
+                  Text(
+                    review.comment!,
+                    style: TextStyle(color: GlassColors.textPrimary(brightness)),
+                  ),
                 ],
               ],
             ),
           );
         }
-        return TicketCard(
+        return GlassServiceCard(
           eyebrow: '${widget.providerName} · Değerlendir',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,24 +349,16 @@ class _ReviewSectionState extends ConsumerState<_ReviewSection> {
                 onChanged: (value) => setState(() => _rating = value),
               ),
               const SizedBox(height: 12),
-              TextField(
+              GlassTextField(
                 controller: _commentController,
                 maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Yorumunuz (opsiyonel)'),
+                labelText: 'Yorumunuz (opsiyonel)',
               ),
               const SizedBox(height: 16),
-              FilledButton(
+              GlassButton(
+                label: 'Değerlendirmeyi Gönder',
+                loading: _isLoading,
                 onPressed: _isLoading ? null : _submit,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.paper,
-                        ),
-                      )
-                    : const Text('Değerlendirmeyi Gönder'),
               ),
             ],
           ),

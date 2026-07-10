@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_text_styles.dart';
-import '../../../core/widgets/ticket_card.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_service_card.dart';
 import '../../messages/presentation/chat_screen.dart';
 import '../domain/offer_status.dart';
 import 'offer_providers.dart';
@@ -14,6 +15,7 @@ class MyActiveJobsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final offersAsync = ref.watch(myOffersProvider);
+    final brightness = Theme.of(context).brightness;
 
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(myOffersProvider),
@@ -21,10 +23,15 @@ class MyActiveJobsTab extends ConsumerWidget {
         data: (offers) {
           if (offers.isEmpty) {
             return ListView(
-              children: const [
+              children: [
                 Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: Text('Henüz teklif vermediniz.')),
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Text(
+                      'Henüz teklif vermediniz.',
+                      style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                    ),
+                  ),
                 ),
               ],
             );
@@ -35,7 +42,7 @@ class MyActiveJobsTab extends ConsumerWidget {
             itemBuilder: (context, index) {
               final offer = offers[index];
               final statusColor = offerStatusColor(offer.status);
-              return TicketCard(
+              return GlassServiceCard(
                 eyebrow: offer.requestCategory ?? 'Talep',
                 accentColor: statusColor,
                 onTap: offer.status == OfferStatus.accepted
@@ -57,7 +64,10 @@ class MyActiveJobsTab extends ConsumerWidget {
                           ),
                           if (offer.requestNeighborhood != null) ...[
                             const SizedBox(height: 2),
-                            Text(offer.requestNeighborhood!),
+                            Text(
+                              offer.requestNeighborhood!,
+                              style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                            ),
                           ],
                         ],
                       ),
@@ -65,7 +75,13 @@ class MyActiveJobsTab extends ConsumerWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('${offer.price} ₺', style: AppTextStyles.mono(fontSize: 14)),
+                        Text(
+                          '${offer.price} ₺',
+                          style: AppTextStyles.mono(
+                            fontSize: 14,
+                            color: GlassColors.textPrimary(brightness),
+                          ),
+                        ),
                         const SizedBox(height: 2),
                         Text(
                           offerStatusLabel(offer.status),

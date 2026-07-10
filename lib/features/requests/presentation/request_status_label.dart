@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/glass_colors.dart';
 import '../domain/service_request_status.dart';
 
 String serviceRequestStatusLabel(ServiceRequestStatus status) {
@@ -19,12 +19,12 @@ String serviceRequestStatusLabel(ServiceRequestStatus status) {
 Color serviceRequestStatusColor(ServiceRequestStatus status) {
   switch (status) {
     case ServiceRequestStatus.open:
-      return AppColors.navy;
+      return GlassColors.primary;
     case ServiceRequestStatus.pending:
-      return AppColors.terracotta;
+      return GlassColors.warning;
     case ServiceRequestStatus.completed:
-      return AppColors.olive;
+      return GlassColors.success;
     case ServiceRequestStatus.cancelled:
-      return AppColors.ink.withValues(alpha: 0.45);
+      return GlassColors.neutral;
   }
 }

@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/didim_neighborhoods.dart';
 import '../../../core/constants/service_categories.dart';
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/glass_button.dart';
+import '../../../core/widgets/glass_text_field.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../domain/provider_profile.dart';
 import 'profile_providers.dart';
@@ -80,8 +84,8 @@ class _ProviderProfileScreenState extends ConsumerState<ProviderProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return GlassScaffold(
+      appBar: GlassAppBar(
         title: Text(
           widget.isEditing ? 'Profili Düzenle' : 'Usta Profilini Tamamla',
         ),
@@ -92,9 +96,9 @@ class _ProviderProfileScreenState extends ConsumerState<ProviderProfileScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
+              GlassTextField(
                 controller: _businessNameController,
-                decoration: const InputDecoration(labelText: 'İşletme Adı'),
+                labelText: 'İşletme Adı',
                 validator: (value) => (value == null || value.isEmpty)
                     ? 'İşletme adı gerekli'
                     : null,
@@ -120,21 +124,16 @@ class _ProviderProfileScreenState extends ConsumerState<ProviderProfileScreen> {
                 validator: (value) => value == null ? 'Mahalle seçin' : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(
+              GlassTextField(
                 controller: _descriptionController,
                 maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Açıklama (opsiyonel)'),
+                labelText: 'Açıklama (opsiyonel)',
               ),
               const SizedBox(height: 20),
-              FilledButton(
+              GlassButton(
+                label: widget.isEditing ? 'Kaydet' : 'Kaydet ve Devam Et',
+                loading: _isLoading,
                 onPressed: _isLoading ? null : _submit,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(widget.isEditing ? 'Kaydet' : 'Kaydet ve Devam Et'),
               ),
             ],
           ),

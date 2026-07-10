@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config/supabase_config.dart';
-import 'core/theme/app_theme.dart';
+import 'core/theme/glass_theme.dart';
 import 'features/auth/presentation/auth_gate.dart';
 
 Future<void> main() async {
@@ -37,7 +37,9 @@ class UstaDidimApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Didim Usta',
-      theme: AppTheme.light(),
+      theme: GlassTheme.light(),
+      darkTheme: GlassTheme.dark(),
+      themeMode: ThemeMode.system,
       home: const AuthGate(),
     );
   }

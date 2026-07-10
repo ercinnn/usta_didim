@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/glass_text_field.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../domain/message.dart';
 import 'message_providers.dart';
@@ -49,16 +52,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(messagesForRequestProvider(widget.requestId));
     final currentUserId = ref.watch(supabaseClientProvider).auth.currentUser!.id;
+    final brightness = Theme.of(context).brightness;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Mesajlar')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Mesajlar')),
       body: Column(
         children: [
           Expanded(
             child: messagesAsync.when(
               data: (messages) {
                 if (messages.isEmpty) {
-                  return const Center(child: Text('Henüz mesaj yok.'));
+                  return Center(
+                    child: Text(
+                      'Henüz mesaj yok.',
+                      style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                    ),
+                  );
                 }
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -79,23 +88,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: GlassTextField(
                       controller: _bodyController,
                       minLines: 1,
                       maxLines: 4,
-                      decoration: const InputDecoration(
-                        hintText: 'Mesaj yaz...',
-                        border: OutlineInputBorder(),
-                      ),
-                      onSubmitted: (_) => _send(),
+                      hintText: 'Mesaj yaz...',
+                      onFieldSubmitted: (_) => _send(),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: _isSending ? null : _send,
-                    icon: const Icon(Icons.send_rounded),
+                  DecoratedBox(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [GlassColors.primary, GlassColors.accent],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      onPressed: _isSending ? null : _send,
+                      icon: const Icon(Icons.send_rounded, color: Colors.white),
+                    ),
                   ),
                 ],
               ),
@@ -115,6 +132,7 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final time =
         '${message.createdAt.hour.toString().padLeft(2, '0')}:${message.createdAt.minute.toString().padLeft(2, '0')}';
     return Align(
@@ -124,8 +142,16 @@ class _MessageBubble extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: isMine ? AppColors.navy : AppColors.stone,
-          borderRadius: BorderRadius.circular(14),
+          gradient: isMine
+              ? const LinearGradient(
+                  colors: [GlassColors.primary, GlassColors.accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: isMine ? null : GlassColors.glassFill(brightness),
+          border: isMine ? null : Border.all(color: GlassColors.glassBorder(brightness)),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,14 +159,18 @@ class _MessageBubble extends StatelessWidget {
           children: [
             Text(
               message.body,
-              style: TextStyle(color: isMine ? AppColors.paper : AppColors.ink),
+              style: TextStyle(
+                color: isMine ? Colors.white : GlassColors.textPrimary(brightness),
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               time,
               style: TextStyle(
                 fontSize: 11,
-                color: isMine ? AppColors.paper.withValues(alpha: 0.7) : AppColors.ink.withValues(alpha: 0.6),
+                color: isMine
+                    ? Colors.white.withValues(alpha: 0.75)
+                    : GlassColors.textSecondary(brightness),
               ),
             ),
           ],

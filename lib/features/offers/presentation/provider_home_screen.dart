@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../../notifications/presentation/notification_bell.dart';
 import '../../profile/presentation/profile_providers.dart';
@@ -17,8 +19,8 @@ class ProviderHomeScreen extends ConsumerWidget {
 
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
+      child: GlassScaffold(
+        appBar: GlassAppBar(
           title: const Text('Usta Paneli'),
           actions: [
             const NotificationBell(),

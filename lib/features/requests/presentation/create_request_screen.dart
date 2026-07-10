@@ -3,6 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/didim_neighborhoods.dart';
 import '../../../core/constants/service_categories.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/glass_button.dart';
+import '../../../core/widgets/glass_container.dart';
+import '../../../core/widgets/glass_text_field.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
 import 'request_providers.dart';
 
@@ -69,8 +75,10 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Hizmet Talebi Oluştur')),
+    final brightness = Theme.of(context).brightness;
+
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Hizmet Talebi Oluştur')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -87,17 +95,17 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
                 validator: (value) => value == null ? 'Kategori seçin' : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(
+              GlassTextField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Başlık'),
+                labelText: 'Başlık',
                 validator: (value) =>
                     (value == null || value.isEmpty) ? 'Başlık gerekli' : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(
+              GlassTextField(
                 controller: _descriptionController,
                 maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Açıklama (opsiyonel)'),
+                labelText: 'Açıklama (opsiyonel)',
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
@@ -110,26 +118,25 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
                 validator: (value) => value == null ? 'Mahalle seçin' : null,
               ),
               const SizedBox(height: 12),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  _preferredDate == null
-                      ? 'Tercih edilen tarih (opsiyonel)'
-                      : 'Tercih edilen tarih: ${_preferredDate!.day}.${_preferredDate!.month}.${_preferredDate!.year}',
-                ),
-                trailing: const Icon(Icons.calendar_today),
+              GlassContainer(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 onTap: _pickDate,
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    _preferredDate == null
+                        ? 'Tercih edilen tarih (opsiyonel)'
+                        : 'Tercih edilen tarih: ${_preferredDate!.day}.${_preferredDate!.month}.${_preferredDate!.year}',
+                    style: TextStyle(color: GlassColors.textPrimary(brightness)),
+                  ),
+                  trailing: Icon(Icons.calendar_today, color: GlassColors.primary),
+                ),
               ),
               const SizedBox(height: 20),
-              FilledButton(
+              GlassButton(
+                label: 'Talebi Oluştur',
+                loading: _isLoading,
                 onPressed: _isLoading ? null : _submit,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Talebi Oluştur'),
               ),
             ],
           ),

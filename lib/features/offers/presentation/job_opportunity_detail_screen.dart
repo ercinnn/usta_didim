@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/ticket_card.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/glass_button.dart';
+import '../../../core/widgets/glass_service_card.dart';
+import '../../../core/widgets/glass_text_field.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../../requests/presentation/request_providers.dart';
 import 'offer_providers.dart';
@@ -62,9 +67,10 @@ class _JobOpportunityDetailScreenState
   @override
   Widget build(BuildContext context) {
     final requestAsync = ref.watch(requestByIdProvider(widget.requestId));
+    final brightness = Theme.of(context).brightness;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('İş Fırsatı')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('İş Fırsatı')),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
@@ -76,7 +82,7 @@ class _JobOpportunityDetailScreenState
                   child: Text('Talep bulunamadı.'),
                 );
               }
-              return TicketCard(
+              return GlassServiceCard(
                 eyebrow: request.category,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,17 +90,24 @@ class _JobOpportunityDetailScreenState
                     Text(request.title,
                         style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 4),
-                    Text(request.neighborhood),
+                    Text(
+                      request.neighborhood,
+                      style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                    ),
                     if (request.preferredDate != null) ...[
                       const SizedBox(height: 4),
                       Text(
                         'Tercih edilen tarih: ${request.preferredDate!.day}.${request.preferredDate!.month}.${request.preferredDate!.year}',
+                        style: TextStyle(color: GlassColors.textSecondary(brightness)),
                       ),
                     ],
                     if (request.description != null &&
                         request.description!.isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      Text(request.description!),
+                      Text(
+                        request.description!,
+                        style: TextStyle(color: GlassColors.textPrimary(brightness)),
+                      ),
                     ],
                   ],
                 ),
@@ -110,7 +123,10 @@ class _JobOpportunityDetailScreenState
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: _submitted
-                ? const Text('Bu iş fırsatına teklif verdiniz.')
+                ? Text(
+                    'Bu iş fırsatına teklif verdiniz.',
+                    style: TextStyle(color: GlassColors.textPrimary(brightness)),
+                  )
                 : Form(
                     key: _formKey,
                     child: Column(
@@ -119,11 +135,11 @@ class _JobOpportunityDetailScreenState
                         Text('Teklif Ver',
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 12),
-                        TextFormField(
+                        GlassTextField(
                           controller: _priceController,
                           keyboardType:
                               const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Fiyat (TL)'),
+                          labelText: 'Fiyat (TL)',
                           validator: (value) {
                             if (value == null || value.isEmpty) return 'Fiyat gerekli';
                             if (num.tryParse(value.trim()) == null) {
@@ -133,23 +149,16 @@ class _JobOpportunityDetailScreenState
                           },
                         ),
                         const SizedBox(height: 12),
-                        TextFormField(
+                        GlassTextField(
                           controller: _noteController,
                           maxLines: 3,
-                          decoration: const InputDecoration(labelText: 'Not (opsiyonel)'),
+                          labelText: 'Not (opsiyonel)',
                         ),
                         const SizedBox(height: 20),
-                        FilledButton(
+                        GlassButton(
+                          label: 'Teklifi Gönder',
+                          loading: _isLoading,
                           onPressed: _isLoading ? null : _submitOffer,
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text('Teklifi Gönder'),
                         ),
                       ],
                     ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/widgets/glass_app_bar.dart';
+import '../../../core/widgets/glass_container.dart';
+import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
 import '../../messages/presentation/chat_screen.dart';
 import '../../requests/presentation/request_detail_screen.dart';
@@ -29,9 +32,10 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notificationsAsync = ref.watch(myNotificationsProvider);
+    final brightness = Theme.of(context).brightness;
 
-    return Scaffold(
-      appBar: AppBar(
+    return GlassScaffold(
+      appBar: GlassAppBar(
         title: const Text('Bildirimler'),
         actions: [
           IconButton(
@@ -47,24 +51,58 @@ class NotificationsScreen extends ConsumerWidget {
       body: notificationsAsync.when(
         data: (notifications) {
           if (notifications.isEmpty) {
-            return const Center(child: Text('Henüz bildirim yok.'));
+            return Center(
+              child: Text(
+                'Henüz bildirim yok.',
+                style: TextStyle(color: GlassColors.textSecondary(brightness)),
+              ),
+            );
           }
-          return ListView.separated(
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: notifications.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final notification = notifications[index];
-              return ListTile(
+              return GlassContainer(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                borderRadius: 18,
                 onTap: () => _open(context, ref, notification),
-                leading: Icon(
-                  Icons.circle,
-                  size: 10,
-                  color: notification.isRead
-                      ? AppColors.ink.withValues(alpha: 0.2)
-                      : AppColors.terracotta,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.circle,
+                      size: 10,
+                      color: notification.isRead
+                          ? GlassColors.neutral
+                          : GlassColors.warning,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            notification.body,
+                            style: TextStyle(
+                              color: GlassColors.textPrimary(brightness),
+                              fontWeight:
+                                  notification.isRead ? FontWeight.w400 : FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatTimestamp(notification.createdAt),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: GlassColors.textSecondary(brightness),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                title: Text(notification.body),
-                subtitle: Text(_formatTimestamp(notification.createdAt)),
               );
             },
           );
