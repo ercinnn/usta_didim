@@ -1,53 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/widgets/glass_app_bar.dart';
 import '../../../core/widgets/glass_button.dart';
 import '../../../core/widgets/glass_text_field.dart';
 import '../../../core/widgets/responsive_scaffold.dart';
 import '../../../core/widgets/role_card.dart';
-import '../../profile/presentation/profile_providers.dart';
-import '../domain/app_role.dart';
-import 'auth_providers.dart';
+import '../../auth/domain/app_role.dart';
+import '../../auth/presentation/auth_providers.dart';
+import 'profile_providers.dart';
 
-class SignUpScreen extends ConsumerStatefulWidget {
-  const SignUpScreen({super.key});
+/// Shown once, right after a user's first successful sign-in, when they have
+/// an `auth.users` row but no matching `profiles` row yet -- the normal case
+/// for Google OAuth sign-ins, which (unlike [SignUpScreen]) never collect a
+/// role/phone number up front.
+class CompleteProfileScreen extends ConsumerStatefulWidget {
+  const CompleteProfileScreen({super.key});
 
   @override
-  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<CompleteProfileScreen> createState() =>
+      _CompleteProfileScreenState();
 }
 
-class _SignUpScreenState extends ConsumerState<SignUpScreen> {
+class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController();
+  late final _fullNameController = TextEditingController(text: _initialFullName());
   final _phoneController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   AppRole _role = AppRole.customer;
   bool _isLoading = false;
+
+  String? _initialFullName() {
+    final metadata = ref.read(supabaseClientProvider).auth.currentUser?.userMetadata;
+    return (metadata?['full_name'] ?? metadata?['name']) as String?;
+  }
 
   @override
   void dispose() {
     _fullNameController.dispose();
     _phoneController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _signUp() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      final authResponse = await ref.read(authRepositoryProvider).signUp(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
-      final userId = authResponse.user?.id;
-      if (userId == null) {
-        throw const AuthException('Kayıt tamamlanamadı, lütfen tekrar deneyin.');
-      }
+      final userId = ref.read(supabaseClientProvider).auth.currentUser!.id;
       await ref.read(profileRepositoryProvider).createProfile(
             id: userId,
             fullName: _fullNameController.text.trim(),
@@ -55,12 +53,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             role: _role,
           );
       ref.invalidate(currentProfileProvider);
+    } catch (e) {
       if (!mounted) return;
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    } on AuthException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -69,7 +64,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: const GlassAppBar(title: Text('Kayıt Ol')),
+      appBar: const GlassAppBar(title: Text('Profili Tamamla')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -81,6 +76,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Text(
+                    'Devam etmek için birkaç bilgiye daha ihtiyacımız var.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 20),
                   GlassTextField(
                     controller: _fullNameController,
                     labelText: 'Ad Soyad',
@@ -94,23 +94,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     labelText: 'Telefon',
                     validator: (value) =>
                         (value == null || value.isEmpty) ? 'Telefon gerekli' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  GlassTextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    labelText: 'E-posta',
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'E-posta gerekli' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  GlassTextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    labelText: 'Şifre',
-                    validator: (value) => (value == null || value.length < 6)
-                        ? 'En az 6 karakter'
-                        : null,
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -141,9 +124,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                   ),
                   const SizedBox(height: 24),
                   GlassButton(
-                    label: 'Kayıt Ol',
+                    label: 'Kaydet ve Devam Et',
                     loading: _isLoading,
-                    onPressed: _isLoading ? null : _signUp,
+                    onPressed: _isLoading ? null : _submit,
                   ),
                 ],
               ),

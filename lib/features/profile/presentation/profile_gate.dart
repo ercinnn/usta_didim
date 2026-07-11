@@ -8,6 +8,7 @@ import '../../auth/domain/app_role.dart';
 import '../../notifications/presentation/notification_providers.dart';
 import '../../offers/presentation/provider_home_screen.dart';
 import '../../requests/presentation/customer_home_screen.dart';
+import 'complete_profile_screen.dart';
 import 'profile_providers.dart';
 import 'provider_profile_screen.dart';
 
@@ -28,7 +29,7 @@ class ProfileGate extends ConsumerWidget {
     return profileAsync.when(
       data: (profile) {
         if (profile == null) {
-          return const _CenteredLoader(message: 'Profil hazırlanıyor...');
+          return const CompleteProfileScreen();
         }
         if (profile.role == AppRole.provider) {
           return const _ProviderGate();
@@ -62,29 +63,13 @@ class _ProviderGate extends ConsumerWidget {
 }
 
 class _CenteredLoader extends StatelessWidget {
-  const _CenteredLoader({this.message});
-
-  final String? message;
+  const _CenteredLoader();
 
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            if (message != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                message!,
-                style: TextStyle(
-                  color: GlassColors.textSecondary(Theme.of(context).brightness),
-                ),
-              ),
-            ],
-          ],
-        ),
+      body: const Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }

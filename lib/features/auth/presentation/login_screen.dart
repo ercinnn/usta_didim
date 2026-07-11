@@ -22,6 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -44,6 +45,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .showSnackBar(SnackBar(content: Text(e.message)));
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+    try {
+      await ref.read(authRepositoryProvider).signInWithGoogle();
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
 
@@ -95,6 +109,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           label: 'Giriş Yap',
                           loading: _isLoading,
                           onPressed: _isLoading ? null : _signIn,
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Divider(
+                                color: GlassColors.glassBorder(
+                                  Theme.of(context).brightness,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(
+                                'veya',
+                                style: TextStyle(
+                                  color: GlassColors.textSecondary(
+                                    Theme.of(context).brightness,
+                                  ),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Divider(
+                                color: GlassColors.glassBorder(
+                                  Theme.of(context).brightness,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        GlassButton(
+                          label: 'Google ile Giriş Yap',
+                          variant: GlassButtonVariant.secondary,
+                          loading: _isGoogleLoading,
+                          onPressed: (_isLoading || _isGoogleLoading)
+                              ? null
+                              : _signInWithGoogle,
                         ),
                         const SizedBox(height: 4),
                         TextButton(
