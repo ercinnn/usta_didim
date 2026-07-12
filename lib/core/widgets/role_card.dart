@@ -24,37 +24,44 @@ class RoleCard extends StatelessWidget {
     final brightness = Theme.of(context).brightness;
     final foreground = selected ? Colors.white : GlassColors.textPrimary(brightness);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
-      child: AnimatedContainer(
-        duration: GlassSpacing.animationDuration,
-        curve: GlassSpacing.animationCurve,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          gradient: selected
-              ? const LinearGradient(
-                  colors: [GlassColors.primary, GlassColors.accent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          color: selected ? null : GlassColors.glassFill(brightness),
-          borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
-          border: Border.all(
-            color: selected ? Colors.transparent : GlassColors.glassBorder(brightness),
-            width: selected ? 0 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: foreground),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
+        child: AnimatedContainer(
+          duration: GlassSpacing.animationDuration,
+          curve: GlassSpacing.animationCurve,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            gradient: selected
+                ? const LinearGradient(
+                    colors: [GlassColors.primary, GlassColors.accent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: selected ? null : GlassColors.glassFill(brightness),
+            borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
+            border: Border.all(
+              color: selected ? Colors.transparent : GlassColors.glassBorder(brightness),
+              width: selected ? 0 : 1,
             ),
-          ],
+          ),
+          child: ExcludeSemantics(
+            child: Column(
+              children: [
+                Icon(icon, color: foreground),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
