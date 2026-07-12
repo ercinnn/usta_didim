@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/glass_colors.dart';
+import '../../../core/theme/glass_spacing.dart';
 import '../../../core/widgets/glass_service_card.dart';
 import '../../messages/presentation/chat_screen.dart';
 import '../domain/offer_status.dart';
@@ -25,19 +26,35 @@ class MyActiveJobsTab extends ConsumerWidget {
             return ListView(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Text(
-                      'Henüz teklif vermediniz.',
-                      style: TextStyle(color: GlassColors.textSecondary(brightness)),
-                    ),
+                  padding: const EdgeInsets.all(GlassSpacing.xl),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: GlassSpacing.xxl),
+                      Icon(
+                        Icons.assignment_outlined,
+                        size: 64,
+                        color: GlassColors.textSecondary(brightness),
+                      ),
+                      const SizedBox(height: GlassSpacing.md),
+                      Text(
+                        'Henüz teklif vermediniz.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: GlassSpacing.xs),
+                      Text(
+                        'İlan havuzundan bir işe teklif verdiğinde burada görünecek.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
                   ),
                 ),
               ],
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: GlassSpacing.sm),
             itemCount: offers.length,
             itemBuilder: (context, index) {
               final offer = offers[index];
@@ -66,7 +83,7 @@ class MyActiveJobsTab extends ConsumerWidget {
                             const SizedBox(height: 2),
                             Text(
                               offer.requestNeighborhood!,
-                              style: TextStyle(color: GlassColors.textSecondary(brightness)),
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
                         ],
@@ -96,7 +113,41 @@ class MyActiveJobsTab extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Hata: $error')),
+        error: (error, _) => ListView(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(GlassSpacing.xl),
+              child: Column(
+                children: [
+                  const SizedBox(height: GlassSpacing.xxl),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: GlassColors.error,
+                  ),
+                  const SizedBox(height: GlassSpacing.md),
+                  Text(
+                    'Teklifleriniz yüklenirken bir hata oluştu.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: GlassSpacing.xs),
+                  Text(
+                    '$error',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: GlassSpacing.md),
+                  TextButton.icon(
+                    onPressed: () => ref.invalidate(myOffersProvider),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Tekrar Dene'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

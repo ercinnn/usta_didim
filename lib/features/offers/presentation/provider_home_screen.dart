@@ -39,7 +39,8 @@ class ProviderHomeScreen extends ConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: () => ref.read(authRepositoryProvider).signOut(),
+              tooltip: 'Çıkış Yap',
+              onPressed: () => _confirmSignOut(context, ref),
             ),
           ],
           bottom: const TabBar(
@@ -57,5 +58,28 @@ class ProviderHomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+    final shouldSignOut = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Çıkış Yap'),
+        content: const Text('Oturumu kapatmak istediğine emin misin?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Vazgeç'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Çıkış Yap'),
+          ),
+        ],
+      ),
+    );
+    if (shouldSignOut ?? false) {
+      await ref.read(authRepositoryProvider).signOut();
+    }
   }
 }
