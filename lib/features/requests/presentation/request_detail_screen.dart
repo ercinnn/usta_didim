@@ -18,6 +18,7 @@ import '../../offers/presentation/offer_providers.dart';
 import '../../offers/presentation/offer_status_label.dart';
 import '../../reviews/presentation/review_providers.dart';
 import '../domain/service_request_status.dart';
+import 'request_photo_gallery.dart';
 import 'request_providers.dart';
 import 'request_status_label.dart';
 
@@ -115,6 +116,10 @@ class RequestDetailScreen extends ConsumerWidget {
                           request.description!,
                           style: TextStyle(color: GlassColors.textPrimary(brightness)),
                         ),
+                      ],
+                      if (request.photoUrls.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        RequestPhotoGallery(photoUrls: request.photoUrls),
                       ],
                     ],
                   ),

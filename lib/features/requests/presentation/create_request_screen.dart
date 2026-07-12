@@ -1,9 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/didim_neighborhoods.dart';
 import '../../../core/constants/service_categories.dart';
 import '../../../core/theme/glass_colors.dart';
+import '../../../core/theme/glass_spacing.dart';
 import '../../../core/widgets/glass_app_bar.dart';
 import '../../../core/widgets/glass_button.dart';
 import '../../../core/widgets/glass_container.dart';
@@ -11,6 +16,15 @@ import '../../../core/widgets/glass_text_field.dart';
 import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
 import 'request_providers.dart';
+
+const _maxPhotos = 5;
+
+String _contentTypeFor(XFile file) {
+  final name = file.name.toLowerCase();
+  if (name.endsWith('.png')) return 'image/png';
+  if (name.endsWith('.webp')) return 'image/webp';
+  return 'image/jpeg';
+}
 
 class CreateRequestScreen extends ConsumerStatefulWidget {
   const CreateRequestScreen({super.key});
@@ -26,6 +40,7 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
   String? _category;
   String? _neighborhood;
   DateTime? _preferredDate;
+  final List<XFile> _photos = [];
   bool _isLoading = false;
 
   @override
@@ -33,6 +48,24 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickPhotos() async {
+    final remaining = _maxPhotos - _photos.length;
+    if (remaining <= 0) return;
+    try {
+      final picked = await ImagePicker().pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1600,
+        limit: remaining,
+      );
+      if (picked.isEmpty) return;
+      setState(() => _photos.addAll(picked.take(remaining)));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Fotoğraf seçilemedi: $e')));
+    }
   }
 
   Future<void> _pickDate() async {
@@ -51,7 +84,16 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
     setState(() => _isLoading = true);
     try {
       final customerId = ref.read(supabaseClientProvider).auth.currentUser!.id;
+      final uploader = ref.read(r2UploadRepositoryProvider);
+      final photoUrls = await Future.wait(_photos.map((file) async {
+        final bytes = await file.readAsBytes();
+        return uploader.uploadPhoto(
+          bytes: bytes,
+          contentType: _contentTypeFor(file),
+        );
+      }));
       await ref.read(serviceRequestRepositoryProvider).createRequest(
+            id: const Uuid().v4(),
             customerId: customerId,
             category: _category!,
             title: _titleController.text.trim(),
@@ -60,6 +102,7 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
                 ? null
                 : _descriptionController.text.trim(),
             preferredDate: _preferredDate,
+            photoUrls: photoUrls,
           );
       ref.invalidate(myRequestsProvider);
       if (!mounted) return;
@@ -132,6 +175,43 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
                   trailing: Icon(Icons.calendar_today, color: GlassColors.primary),
                 ),
               ),
+              const SizedBox(height: 12),
+              Text(
+                'Fotoğraflar (opsiyonel, en fazla $_maxPhotos)',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 88,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    for (var i = 0; i < _photos.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: _PhotoThumbnail(
+                          file: _photos[i],
+                          onRemove: () => setState(() => _photos.removeAt(i)),
+                        ),
+                      ),
+                    if (_photos.length < _maxPhotos)
+                      GestureDetector(
+                        onTap: _pickPhotos,
+                        child: Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            color: GlassColors.glassFill(brightness),
+                            borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
+                            border: Border.all(color: GlassColors.glassBorder(brightness)),
+                          ),
+                          child: Icon(Icons.add_a_photo_outlined,
+                              color: GlassColors.primary),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
               GlassButton(
                 label: 'Talebi Oluştur',
@@ -141,6 +221,61 @@ class _CreateRequestScreenState extends ConsumerState<CreateRequestScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PhotoThumbnail extends StatelessWidget {
+  const _PhotoThumbnail({required this.file, required this.onRemove});
+
+  final XFile file;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 88,
+      height: 88,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
+            child: FutureBuilder<Uint8List>(
+              future: file.readAsBytes(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Container(
+                    width: 88,
+                    height: 88,
+                    color: GlassColors.glassFill(Theme.of(context).brightness),
+                  );
+                }
+                return Image.memory(
+                  snapshot.data!,
+                  width: 88,
+                  height: 88,
+                  fit: BoxFit.cover,
+                );
+              },
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

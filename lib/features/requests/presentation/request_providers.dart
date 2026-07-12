@@ -2,11 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/presentation/auth_providers.dart';
 import '../../profile/presentation/profile_providers.dart';
+import '../data/r2_upload_repository.dart';
 import '../data/service_request_repository.dart';
 import '../domain/service_request.dart';
 
 final serviceRequestRepositoryProvider = Provider<ServiceRequestRepository>((ref) {
   return ServiceRequestRepository(ref.watch(supabaseClientProvider));
+});
+
+final r2UploadRepositoryProvider = Provider<R2UploadRepository>((ref) {
+  return R2UploadRepository(ref.watch(supabaseClientProvider));
 });
 
 final myRequestsProvider = FutureProvider<List<ServiceRequest>>((ref) async {

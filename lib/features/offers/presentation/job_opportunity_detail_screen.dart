@@ -8,6 +8,7 @@ import '../../../core/widgets/glass_service_card.dart';
 import '../../../core/widgets/glass_text_field.dart';
 import '../../../core/widgets/responsive_scaffold.dart';
 import '../../auth/presentation/auth_providers.dart';
+import '../../requests/presentation/request_photo_gallery.dart';
 import '../../requests/presentation/request_providers.dart';
 import 'offer_providers.dart';
 
@@ -108,6 +109,10 @@ class _JobOpportunityDetailScreenState
                         request.description!,
                         style: TextStyle(color: GlassColors.textPrimary(brightness)),
                       ),
+                    ],
+                    if (request.photoUrls.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      RequestPhotoGallery(photoUrls: request.photoUrls),
                     ],
                   ],
                 ),

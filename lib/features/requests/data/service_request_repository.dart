@@ -8,20 +8,24 @@ class ServiceRequestRepository {
   final SupabaseClient _client;
 
   Future<void> createRequest({
+    required String id,
     required String customerId,
     required String category,
     required String title,
     required String neighborhood,
     String? description,
     DateTime? preferredDate,
+    List<String> photoUrls = const [],
   }) async {
     await _client.from('service_requests').insert({
+      'id': id,
       'customer_id': customerId,
       'category': category,
       'title': title,
       'description': description,
       'neighborhood': neighborhood,
       'preferred_date': preferredDate?.toIso8601String(),
+      'photo_urls': photoUrls,
     });
   }
 
