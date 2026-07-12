@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/glass_colors.dart';
+import '../../../core/theme/glass_spacing.dart';
 import '../../../core/widgets/glass_app_bar.dart';
 import '../../../core/widgets/glass_service_card.dart';
 import '../../../core/widgets/responsive_scaffold.dart';
@@ -27,7 +28,8 @@ class CustomerHomeScreen extends ConsumerWidget {
           const NotificationBell(),
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+            tooltip: 'Çıkış Yap',
+            onPressed: () => _confirmSignOut(context, ref),
           ),
         ],
       ),
@@ -39,21 +41,35 @@ class CustomerHomeScreen extends ConsumerWidget {
               return ListView(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Center(
-                      child: Text(
-                        'Henüz bir talebin yok.',
-                        style: TextStyle(
+                    padding: const EdgeInsets.all(GlassSpacing.xl),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: GlassSpacing.xxl),
+                        Icon(
+                          Icons.inbox_outlined,
+                          size: 64,
                           color: GlassColors.textSecondary(brightness),
                         ),
-                      ),
+                        const SizedBox(height: GlassSpacing.md),
+                        Text(
+                          'Henüz bir talebin yok.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: GlassSpacing.xs),
+                        Text(
+                          '“Yeni Talep” butonuna dokunarak ilk talebini oluştur.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               );
             }
             return ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: GlassSpacing.sm),
               itemCount: requests.length,
               itemBuilder: (context, index) {
                 final request = requests[index];
@@ -78,9 +94,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                             const SizedBox(height: 2),
                             Text(
                               request.neighborhood,
-                              style: TextStyle(
-                                color: GlassColors.textSecondary(brightness),
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -99,7 +113,41 @@ class CustomerHomeScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(child: Text('Hata: $error')),
+          error: (error, _) => ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(GlassSpacing.xl),
+                child: Column(
+                  children: [
+                    const SizedBox(height: GlassSpacing.xxl),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: GlassColors.error,
+                    ),
+                    const SizedBox(height: GlassSpacing.md),
+                    Text(
+                      'Talepler yüklenirken bir hata oluştu.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: GlassSpacing.xs),
+                    Text(
+                      '$error',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: GlassSpacing.md),
+                    TextButton.icon(
+                      onPressed: () => ref.invalidate(myRequestsProvider),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Tekrar Dene'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -110,5 +158,28 @@ class CustomerHomeScreen extends ConsumerWidget {
         label: const Text('Yeni Talep'),
       ),
     );
+  }
+
+  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+    final shouldSignOut = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Çıkış Yap'),
+        content: const Text('Oturumu kapatmak istediğine emin misin?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Vazgeç'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Çıkış Yap'),
+          ),
+        ],
+      ),
+    );
+    if (shouldSignOut ?? false) {
+      await ref.read(authRepositoryProvider).signOut();
+    }
   }
 }
