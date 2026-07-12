@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/glass_colors.dart';
+import '../../../core/theme/glass_spacing.dart';
 import '../../../core/widgets/glass_app_bar.dart';
 import '../../../core/widgets/glass_button.dart';
+import '../../../core/widgets/glass_container.dart';
 import '../../../core/widgets/glass_text_field.dart';
 import '../../../core/widgets/responsive_scaffold.dart';
 import '../../../core/widgets/role_card.dart';
@@ -42,6 +45,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   }
 
   Future<void> _submit() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
@@ -54,11 +58,23 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
           );
       ref.invalidate(currentProfileProvider);
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      _showError('Bir hata oluştu: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: GlassColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 
   @override
@@ -67,68 +83,99 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
       appBar: const GlassAppBar(title: Text('Profili Tamamla')),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(
+            horizontal: GlassSpacing.lg,
+            vertical: GlassSpacing.xl,
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Devam etmek için birkaç bilgiye daha ihtiyacımız var.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 20),
-                  GlassTextField(
-                    controller: _fullNameController,
-                    labelText: 'Ad Soyad',
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'Ad soyad gerekli' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  GlassTextField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    labelText: 'Telefon',
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'Telefon gerekli' : null,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Hesap Türü',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RoleCard(
-                          label: 'Müşteri',
-                          icon: Icons.search_rounded,
-                          selected: _role == AppRole.customer,
-                          onTap: () => setState(() => _role = AppRole.customer),
-                        ),
+            child: GlassContainer(
+              padding: const EdgeInsets.fromLTRB(
+                GlassSpacing.lg,
+                GlassSpacing.lg,
+                GlassSpacing.lg,
+                GlassSpacing.md,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Devam etmek için birkaç bilgiye daha ihtiyacımız var.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: GlassSpacing.lg),
+                    GlassTextField(
+                      controller: _fullNameController,
+                      labelText: 'Ad Soyad',
+                      enabled: !_isLoading,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.name],
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? 'Ad soyad gerekli'
+                          : null,
+                    ),
+                    const SizedBox(height: GlassSpacing.md),
+                    GlassTextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      labelText: 'Telefon',
+                      enabled: !_isLoading,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.telephoneNumber],
+                      onFieldSubmitted: (_) => _submit(),
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? 'Telefon gerekli'
+                          : null,
+                    ),
+                    const SizedBox(height: GlassSpacing.lg),
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        'Hesap Türü',
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: RoleCard(
-                          label: 'Usta / Firma',
-                          icon: Icons.handyman_rounded,
-                          selected: _role == AppRole.provider,
-                          onTap: () => setState(() => _role = AppRole.provider),
+                    ),
+                    const SizedBox(height: GlassSpacing.sm),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RoleCard(
+                            label: 'Müşteri',
+                            icon: Icons.search_rounded,
+                            selected: _role == AppRole.customer,
+                            onTap: () {
+                              if (_isLoading) return;
+                              setState(() => _role = AppRole.customer);
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  GlassButton(
-                    label: 'Kaydet ve Devam Et',
-                    loading: _isLoading,
-                    onPressed: _isLoading ? null : _submit,
-                  ),
-                ],
+                        const SizedBox(width: GlassSpacing.sm),
+                        Expanded(
+                          child: RoleCard(
+                            label: 'Usta / Firma',
+                            icon: Icons.handyman_rounded,
+                            selected: _role == AppRole.provider,
+                            onTap: () {
+                              if (_isLoading) return;
+                              setState(() => _role = AppRole.provider);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: GlassSpacing.lg),
+                    GlassButton(
+                      label: 'Kaydet ve Devam Et',
+                      loading: _isLoading,
+                      onPressed: _isLoading ? null : _submit,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
