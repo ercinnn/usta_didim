@@ -41,6 +41,14 @@ flutter build web --release --base-href /usta_didim/    # base-href must match t
 ```
 Then copy `build/web/*` (plus a touched `.nojekyll` file, so Pages doesn't ignore Flutter's `_`-prefixed asset paths) onto the `gh-pages` branch and push. Since `gh-pages` has unrelated history from `master`, do this in a throwaway `git worktree` rather than switching branches in the main working copy: `git worktree add <tmp-dir> gh-pages`, clear its tracked files, copy the new `build/web` output in, commit, push, then `git worktree remove --force <tmp-dir>`.
 
+## UI/UX polish pass (in progress, page by page)
+
+The app is being taken through a screen-by-screen UI/UX review + fix + deploy pass (via the `ui-ux-design-lead` subagent and its specialists in `.claude/agents/`), each screen built and pushed to GitHub Pages as it's finished. Done so far: `login_screen.dart`, `sign_up_screen.dart`, `complete_profile_screen.dart`, `customer_home_screen.dart`, `provider_home_screen.dart` (+ `job_pool_tab.dart`, `my_active_jobs_screen.dart`), `provider_profile_screen.dart`.
+
+**Not yet done — planned for later**, in this order: `create_request_screen.dart`, `request_detail_screen.dart` (+ its review form and `request_photo_gallery.dart`), `job_opportunity_detail_screen.dart`, `chat_screen.dart`, `notifications_screen.dart`.
+
+**Deferred cross-cutting issue found during the pass**: `GlassColors.warning`/`.neutral`/`.success`/`.error` are single constants (not split into `Light`/`Dark` variants like `textSecondary` is) and fail WCAG AA contrast as text on the light background gradient in several cases (`warning` ~1.8:1, `neutral` ~2.1:1, `success` ~2.7:1, `error` ~4.0:1, all against a 4.5:1 target) — confirmed on `customer_home_screen.dart`/`provider_home_screen.dart`'s status labels. Fixing it properly needs brightness-aware variants plus updating every call site (`star_rating.dart`, `notification_bell.dart`, `notifications_screen.dart`, `request_status_label.dart`, `offer_status_label.dart`) — intentionally left untouched during the per-screen passes so it doesn't balloon into an unscoped refactor; do it as its own dedicated token pass.
+
 ## Architecture
 
 **Feature-first**, not layer-first: `lib/features/{auth,profile,requests,offers,reviews}/{data,domain,presentation}`. Cross-feature imports are normal and expected (e.g. `requests` reads the provider's category from `profile`, `offers` composes both `requests` and `profile` data) — don't try to fully decouple features.
