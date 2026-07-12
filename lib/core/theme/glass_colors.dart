@@ -18,7 +18,7 @@ class GlassColors {
   static const glassBorderDark = Color(0x26FFFFFF); // rgba(255,255,255,0.15)
 
   static const textPrimaryLight = Color(0xFF0F172A);
-  static const textSecondaryLight = Color(0xFF64748B);
+  static const textSecondaryLight = Color(0xFF475569);
   static const textPrimaryDark = Color(0xFFF1F5F9);
   static const textSecondaryDark = Color(0xFF94A3B8);
 

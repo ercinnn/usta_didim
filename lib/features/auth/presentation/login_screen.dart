@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/theme/glass_colors.dart';
+import '../../../core/theme/glass_spacing.dart';
 import '../../../core/widgets/glass_button.dart';
 import '../../../core/widgets/glass_container.dart';
 import '../../../core/widgets/glass_text_field.dart';
@@ -32,6 +33,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _signIn() async {
+    if (_isLoading || _isGoogleLoading) return;
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
@@ -40,25 +42,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             password: _passwordController.text,
           );
     } on AuthException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message)));
+      _showError(e.message);
+    } catch (e) {
+      _showError('Bir hata oluştu: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _signInWithGoogle() async {
+    if (_isLoading || _isGoogleLoading) return;
     setState(() => _isGoogleLoading = true);
     try {
       await ref.read(authRepositoryProvider).signInWithGoogle();
     } on AuthException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message)));
+      _showError(e.message);
+    } catch (e) {
+      _showError('Bir hata oluştu: $e');
     } finally {
       if (mounted) setState(() => _isGoogleLoading = false);
     }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: GlassColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 
   @override
@@ -66,16 +82,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return GlassScaffold(
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: const EdgeInsets.symmetric(
+            horizontal: GlassSpacing.lg,
+            vertical: GlassSpacing.xl,
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const _Wordmark(),
-                const SizedBox(height: 32),
+                const SizedBox(height: GlassSpacing.xl),
                 GlassContainer(
-                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+                  padding: const EdgeInsets.fromLTRB(
+                    GlassSpacing.lg,
+                    GlassSpacing.lg,
+                    GlassSpacing.lg,
+                    GlassSpacing.md,
+                  ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -86,31 +110,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           'Giriş Yap',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: GlassSpacing.lg),
                         GlassTextField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           labelText: 'E-posta',
+                          enabled: !(_isLoading || _isGoogleLoading),
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [
+                            AutofillHints.username,
+                            AutofillHints.email,
+                          ],
+                          onFieldSubmitted: (_) =>
+                              FocusScope.of(context).nextFocus(),
                           validator: (value) => (value == null || value.isEmpty)
                               ? 'E-posta gerekli'
                               : null,
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: GlassSpacing.md),
                         GlassTextField(
                           controller: _passwordController,
                           obscureText: true,
                           labelText: 'Şifre',
+                          enabled: !(_isLoading || _isGoogleLoading),
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                          onFieldSubmitted: (_) => _signIn(),
                           validator: (value) => (value == null || value.length < 6)
                               ? 'En az 6 karakter'
                               : null,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: GlassSpacing.lg),
                         GlassButton(
                           label: 'Giriş Yap',
                           loading: _isLoading,
                           onPressed: _isLoading ? null : _signIn,
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: GlassSpacing.lg),
                         Row(
                           children: [
                             Expanded(
@@ -121,15 +157,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: GlassSpacing.sm,
+                              ),
                               child: Text(
                                 'veya',
-                                style: TextStyle(
-                                  color: GlassColors.textSecondary(
-                                    Theme.of(context).brightness,
-                                  ),
-                                  fontSize: 13,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: GlassColors.textSecondary(
+                                        Theme.of(context).brightness,
+                                      ),
+                                    ),
                               ),
                             ),
                             Expanded(
@@ -141,7 +178,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: GlassSpacing.lg),
                         GlassButton(
                           label: 'Google ile Giriş Yap',
                           variant: GlassButtonVariant.secondary,
@@ -150,9 +187,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ? null
                               : _signInWithGoogle,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: GlassSpacing.xs),
                         TextButton(
-                          onPressed: _isLoading
+                          onPressed: (_isLoading || _isGoogleLoading)
                               ? null
                               : () => Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -189,12 +226,11 @@ class _Wordmark extends StatelessWidget {
         Text(
           'DİDİM\'DE GÜVENİLİR USTA AĞI',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: GlassColors.textSecondary(brightness),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 2.2,
-          ),
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: GlassColors.textSecondary(brightness),
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2.2,
+              ),
         ),
         const SizedBox(height: 10),
         Row(

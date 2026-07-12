@@ -65,40 +65,54 @@ class GlassButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
-      child: InkWell(
-        onTap: disabled ? null : onPressed,
-        borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
-        child: AnimatedContainer(
-          duration: GlassSpacing.animationDuration,
-          curve: GlassSpacing.animationCurve,
-          height: 52,
-          width: expanded ? double.infinity : null,
-          padding: const EdgeInsets.symmetric(horizontal: GlassSpacing.lg),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            gradient: _isPrimary
-                ? const LinearGradient(
-                    colors: [GlassColors.primary, GlassColors.accent],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            color: _isPrimary ? null : GlassColors.glassFill(brightness),
-            borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
-            border: _isPrimary
-                ? null
-                : Border.all(color: GlassColors.glassBorder(brightness)),
-            boxShadow: _isPrimary && !disabled
-                ? [
-                    BoxShadow(
-                      color: GlassColors.primary.withValues(alpha: 0.35),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : null,
+      child: Semantics(
+        button: true,
+        enabled: !disabled,
+        // The visible label is swapped for a bare spinner while [loading] is
+        // true, which would otherwise leave the button with no accessible
+        // name for screen readers. Pin an explicit label so it's always
+        // announced, and hide the (now redundant) inline text from the tree.
+        label: loading ? '$label, yükleniyor' : label,
+        child: InkWell(
+          onTap: disabled ? null : onPressed,
+          borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
+          child: AnimatedContainer(
+            duration: GlassSpacing.animationDuration,
+            curve: GlassSpacing.animationCurve,
+            height: 52,
+            width: expanded ? double.infinity : null,
+            padding: const EdgeInsets.symmetric(horizontal: GlassSpacing.lg),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: _isPrimary
+                  ? const LinearGradient(
+                      colors: [GlassColors.primary, GlassColors.accent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: _isPrimary ? null : GlassColors.glassFill(brightness),
+              borderRadius: BorderRadius.circular(GlassSpacing.radiusSm),
+              border: _isPrimary
+                  ? null
+                  : Border.all(color: GlassColors.glassBorder(brightness)),
+              boxShadow: _isPrimary && !disabled
+                  ? [
+                      BoxShadow(
+                        color: GlassColors.primary.withValues(alpha: 0.35),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: ExcludeSemantics(
+              child: Opacity(
+                opacity: disabled && !loading ? 0.5 : 1,
+                child: content,
+              ),
+            ),
           ),
-          child: Opacity(opacity: disabled && !loading ? 0.5 : 1, child: content),
         ),
       ),
     );

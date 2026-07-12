@@ -25,6 +25,7 @@ class GlassTextField extends StatelessWidget {
     this.suffixIcon,
     this.autofocus = false,
     this.enabled = true,
+    this.autofillHints,
   });
 
   final TextEditingController? controller;
@@ -42,6 +43,7 @@ class GlassTextField extends StatelessWidget {
   final IconData? suffixIcon;
   final bool autofocus;
   final bool enabled;
+  final Iterable<String>? autofillHints;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +66,7 @@ class GlassTextField extends StatelessWidget {
       textInputAction: textInputAction,
       autofocus: autofocus,
       enabled: enabled,
+      autofillHints: autofillHints,
       style: TextStyle(color: GlassColors.textPrimary(brightness)),
       decoration: InputDecoration(
         labelText: labelText,
